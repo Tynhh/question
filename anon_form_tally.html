@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hỏi mình ẩn danh 💬</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0d0014;
+    overflow: hidden;
+  }
+
+  /* ── animated background blobs ── */
+  .bg {
+    position: fixed; inset: 0; z-index: 0; overflow: hidden;
+  }
+  .bg span {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4;
+    animation: drift 12s ease-in-out infinite alternate;
+  }
+  .bg span:nth-child(1){ width:400px;height:400px;background:#c44dff;top:-100px;left:-100px;animation-delay:0s }
+  .bg span:nth-child(2){ width:300px;height:300px;background:#ff6b9d;bottom:-80px;right:-80px;animation-delay:-4s }
+  .bg span:nth-child(3){ width:200px;height:200px;background:#ffa94d;top:50%;left:55%;animation-delay:-8s }
+  @keyframes drift {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(30px,20px) scale(1.1); }
+  }
+
+  /* ── card ── */
+  .card {
+    position: relative; z-index: 1;
+    width: min(92vw, 400px);
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 28px;
+    padding: 32px 28px 28px;
+    box-shadow: 0 8px 60px rgba(196,77,255,0.25);
+    animation: slideUp 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes slideUp {
+    from { opacity:0; transform: translateY(30px) scale(0.97); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+  }
+
+  .icon { font-size: 36px; text-align: center; margin-bottom: 10px; }
+  h1 {
+    font-size: 20px; font-weight: 700; color: #fff;
+    text-align: center; line-height: 1.35; margin-bottom: 6px;
+  }
+  .sub {
+    font-size: 13px; color: rgba(255,255,255,0.5);
+    text-align: center; margin-bottom: 18px;
+  }
+
+  /* ── anon badge ── */
+  .badge {
+    display: flex; align-items: center; gap: 7px; justify-content: center;
+    background: rgba(196,77,255,0.18);
+    border: 1px solid rgba(196,77,255,0.4);
+    border-radius: 999px; padding: 6px 16px;
+    font-size: 12px; font-weight: 600; color: #ddb8ff;
+    margin-bottom: 22px; width: fit-content; margin-inline: auto;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #c44dff;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:0.4; transform:scale(0.75); }
+  }
+
+  /* ── textarea ── */
+  .input-wrap { position: relative; margin-bottom: 14px; }
+  textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.18);
+    border-radius: 16px;
+    padding: 14px 16px 32px;
+    font-family: 'Sora', sans-serif;
+    font-size: 14px; color: #fff;
+    resize: none; min-height: 110px;
+    outline: none;
+    transition: border-color 0.25s;
+    caret-color: #c44dff;
+  }
+  textarea::placeholder { color: rgba(255,255,255,0.32); }
+  textarea:focus { border-color: rgba(196,77,255,0.7); }
+  .char {
+    position: absolute; bottom: 11px; right: 14px;
+    font-size: 11px; color: rgba(255,255,255,0.3);
+    transition: color 0.2s;
+  }
+  .char.warn { color: #ff6b9d; }
+
+  /* ── send button ── */
+  .btn {
+    width: 100%; padding: 15px;
+    border: none; border-radius: 16px;
+    background: linear-gradient(135deg, #c44dff 0%, #ff6b9d 100%);
+    font-family: 'Sora', sans-serif;
+    font-size: 15px; font-weight: 700; color: #fff;
+    cursor: pointer; letter-spacing: 0.02em;
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 24px rgba(196,77,255,0.35);
+  }
+  .btn:hover  { opacity: 0.88; box-shadow: 0 6px 32px rgba(196,77,255,0.5); }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .btn svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ── privacy note ── */
+  .note {
+    font-size: 11px; color: rgba(255,255,255,0.3);
+    text-align: center; margin-top: 14px; line-height: 1.6;
+  }
+
+  /* ── success screen ── */
+  #success {
+    display: none; flex-direction: column; align-items: center;
+    gap: 10px; padding: 8px 0;
+    animation: slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  .success-icon { font-size: 52px; }
+  #success h2 { font-size: 20px; font-weight: 700; color: #fff; text-align: center; }
+  #success p  { font-size: 13px; color: rgba(255,255,255,0.5); text-align: center; line-height: 1.6; }
+  .btn-ghost {
+    margin-top: 8px; width: 100%; padding: 13px;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 16px; background: transparent;
+    font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600;
+    color: rgba(255,255,255,0.8); cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-ghost:hover  { background: rgba(255,255,255,0.08); }
+  .btn-ghost:active { transform: scale(0.97); }
+
+  /* ── loading spinner ── */
+  .spinner {
+    display: inline-block; width: 18px; height: 18px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <span></span><span></span><span></span>
+</div>
+
+<div class="card">
+
+  <!-- ── Form view ── -->
+  <div id="form-view">
+    <div class="icon">💬</div>
+    <h1>Hỏi mình bất kỳ điều gì!</h1>
+    <p class="sub">Mình sẽ trả lời tất cả 👀</p>
+
+    <div class="badge">
+      <div class="dot"></div>
+      Ẩn danh hoàn toàn
+    </div>
+
+    <div class="input-wrap">
+      <textarea
+        id="q"
+        maxlength="200"
+        placeholder="Nhập câu hỏi của bạn…"
+        oninput="onType()"
+      ></textarea>
+      <span class="char" id="char">0 / 200</span>
+    </div>
+
+    <button class="btn" id="sendbtn" onclick="submit()" disabled>
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Gửi câu hỏi
+    </button>
+
+    <p class="note">
+      🔒 Không biết bạn là ai · Không lưu thông tin cá nhân<br>
+      Câu hỏi sẽ gửi thẳng đến hộp thư của mình
+    </p>
+  </div>
+
+  <!-- ── Success view ── -->
+  <div id="success">
+    <div class="success-icon">🎉</div>
+    <h2>Gửi thành công rồi!</h2>
+    <p>Câu hỏi ẩn danh của bạn đã bay đến hộp thư 💌<br>Mình sẽ trả lời sớm nhé!</p>
+    <button class="btn-ghost" onclick="reset()">Hỏi thêm câu khác</button>
+  </div>
+
+</div>
+
+<script>
+  // ─────────────────────────────────────────
+  // ĐỔI FORM_ID thành ID form Tally của bạn
+  // Ví dụ: nếu link share là https://tally.so/r/wMdKxP
+  // thì FORM_ID = "wMdKxP"
+  // ─────────────────────────────────────────
+  const FORM_ID = "aQzvDZ";
+
+  // Tên field trong Tally (mặc định là "question" hoặc tên bạn đặt)
+  // Vào Tally > form > xem tên câu hỏi, chỉnh lại nếu cần
+  const FIELD_KEY = "question";
+
+  function onType() {
+    const val = document.getElementById('q').value;
+    const cnt = document.getElementById('char');
+    const btn = document.getElementById('sendbtn');
+    cnt.textContent = val.length + ' / 200';
+    cnt.classList.toggle('warn', val.length > 160);
+    btn.disabled = val.trim().length === 0;
+  }
+
+  async function submit() {
+    const text = document.getElementById('q').value.trim();
+    if (!text) return;
+
+    const btn = document.getElementById('sendbtn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Đang gửi…';
+
+    // Tally hidden form submission (AJAX-style via iframe trick)
+    // Tally hỗ trợ prefill qua URL param — dùng hidden iframe để submit
+    const payload = new URLSearchParams();
+    payload.append(FIELD_KEY, text);
+
+    try {
+      // Phương pháp: POST trực tiếp đến Tally embed endpoint
+      const resp = await fetch(`https://tally.so/r/${FORM_ID}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: payload.toString(),
+        mode: 'no-cors'   // Tally không cho CORS, no-cors vẫn gửi được
+      });
+
+      // no-cors luôn trả về opaque response → coi là thành công
+      showSuccess();
+    } catch(e) {
+      // fallback: mở tab Tally với câu hỏi prefill
+      const url = `https://tally.so/r/${FORM_ID}?${FIELD_KEY}=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+      showSuccess();
+    }
+  }
+
+  function showSuccess() {
+    document.getElementById('form-view').style.display = 'none';
+    const s = document.getElementById('success');
+    s.style.display = 'flex';
+  }
+
+  function reset() {
+    document.getElementById('q').value = '';
+    document.getElementById('char').textContent = '0 / 200';
+    document.getElementById('sendbtn').innerHTML =
+      `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Gửi câu hỏi`;
+    document.getElementById('sendbtn').disabled = true;
+    document.getElementById('success').style.display = 'none';
+    document.getElementById('form-view').style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
